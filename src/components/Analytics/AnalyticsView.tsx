@@ -68,6 +68,10 @@ export function AnalyticsView({
   const [formLabel, setFormLabel] = useState('');
   const [formNotes, setFormNotes] = useState('');
 
+  // Confirmações antes de excluir ou salvar edição de sessão
+  const [pendingDeleteSession, setPendingDeleteSession] = useState<StudySession | null>(null);
+  const [pendingEditSession, setPendingEditSession] = useState<StudySession | null>(null);
+
   const minutesByDate = useMemo(() => {
     const map = new Map<string, number>();
     for (const s of sessions) {
@@ -244,32 +248,49 @@ export function AnalyticsView({
     const trimmedNotes = formNotes.trim();
 
     if (editingSession) {
-      onSaveSession(
-        {
-          ...editingSession,
-          date: formDate || editingSession.date,
-          durationMinutes: mins,
-          label: formLabel.trim() || 'Atividade',
-          notes: trimmedNotes || undefined,
-        },
-        true
-      );
-    } else {
-      onSaveSession(
-        {
-          id: uid('sess'),
-          date: formDate || formatLocalDate(new Date()),
-          durationMinutes: mins,
-          label: formLabel.trim() || 'Atividade registrada',
-          notes: trimmedNotes || undefined,
-          completedAt: new Date().toISOString(),
-          source: 'manual',
-        },
-        false
-      );
+      setPendingEditSession({
+        ...editingSession,
+        date: formDate || editingSession.date,
+        durationMinutes: mins,
+        label: formLabel.trim() || 'Atividade',
+        notes: trimmedNotes || undefined,
+      });
+      setSessionModalOpen(false);
+      return;
     }
 
+    onSaveSession(
+      {
+        id: uid('sess'),
+        date: formDate || formatLocalDate(new Date()),
+        durationMinutes: mins,
+        label: formLabel.trim() || 'Atividade registrada',
+        notes: trimmedNotes || undefined,
+        completedAt: new Date().toISOString(),
+        source: 'manual',
+      },
+      false
+    );
+
     setSessionModalOpen(false);
+  };
+
+  const confirmEditSession = () => {
+    if (!pendingEditSession) return;
+    onSaveSession(pendingEditSession, true);
+    setPendingEditSession(null);
+    setEditingSession(null);
+  };
+
+  const cancelEditConfirmation = () => {
+    setPendingEditSession(null);
+    setSessionModalOpen(true);
+  };
+
+  const confirmDeleteSession = () => {
+    if (!pendingDeleteSession) return;
+    onDeleteSession(pendingDeleteSession.id);
+    setPendingDeleteSession(null);
   };
 
   return (
@@ -707,7 +728,7 @@ export function AnalyticsView({
                     type="button"
                     className="btn-ghost"
                     style={{ padding: 5 }}
-                    onClick={() => onDeleteSession(s.id)}
+                    onClick={() => setPendingDeleteSession(s)}
                     title="Excluir sessão"
                     aria-label="Excluir sessão"
                   >
@@ -795,6 +816,71 @@ export function AnalyticsView({
             </button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={pendingEditSession !== null}
+        onClose={cancelEditConfirmation}
+        title="Confirmar edição da sessão?"
+      >
+        {pendingEditSession && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--muted)' }}>
+              Tem certeza que deseja salvar as alterações em{' '}
+              <strong style={{ color: 'var(--text)' }}>
+                &ldquo;{pendingEditSession.label || 'Atividade'}&rdquo;
+              </strong>{' '}
+              ({formatMinutesHuman(pendingEditSession.durationMinutes)} em{' '}
+              {parseLocalDate(pendingEditSession.date).toLocaleDateString('pt-BR')})?
+            </p>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={cancelEditConfirmation}
+              >
+                Voltar
+              </button>
+              <button type="button" className="btn btn-primary" onClick={confirmEditSession}>
+                Sim, salvar
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={pendingDeleteSession !== null}
+        onClose={() => setPendingDeleteSession(null)}
+        title="Excluir sessão?"
+      >
+        {pendingDeleteSession && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--muted)' }}>
+              Tem certeza que deseja excluir a sessão{' '}
+              <strong style={{ color: 'var(--text)' }}>
+                &ldquo;{pendingDeleteSession.label || 'Atividade'}&rdquo;
+              </strong>{' '}
+              ({formatMinutesHuman(pendingDeleteSession.durationMinutes)} em{' '}
+              {parseLocalDate(pendingDeleteSession.date).toLocaleDateString('pt-BR')})? Essa ação
+              não pode ser desfeita.
+            </p>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setPendingDeleteSession(null)}
+              >
+                Cancelar
+              </button>
+              <button type="button" className="btn btn-danger" onClick={confirmDeleteSession}>
+                Sim, excluir
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </section>
   );

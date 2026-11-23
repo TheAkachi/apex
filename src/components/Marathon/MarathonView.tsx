@@ -7,6 +7,7 @@ import {
   Coffee,
   FileText,
   ListChecks,
+  Pause,
   PictureInPicture2,
   Play,
   Plus,
@@ -19,7 +20,7 @@ import { Hourglass } from '../ui/Hourglass';
 import { Modal } from '../ui/Modal';
 import './MarathonView.css';
 
-export type MarathonStatus = 'idle' | 'flowing' | 'resting';
+export type MarathonStatus = 'idle' | 'flowing' | 'paused' | 'resting';
 
 interface MarathonViewProps {
   status: MarathonStatus;
@@ -35,6 +36,7 @@ interface MarathonViewProps {
   todayEvents: CalendarEvent[];
   todayPriorities: DailyPriority[];
   onStartOrResume: () => void;
+  onPause: () => void;
   onStartBreak: () => void;
   onFinishMarathon: () => void;
   onDiscardMarathon: () => void;
@@ -62,6 +64,7 @@ export function MarathonView({
   todayEvents,
   todayPriorities,
   onStartOrResume,
+  onPause,
   onStartBreak,
   onFinishMarathon,
   onDiscardMarathon,
@@ -120,7 +123,7 @@ export function MarathonView({
         )}
 
         <div className="marathon-clock-box">
-          <Hourglass running={status !== 'idle'} size={30} />
+          <Hourglass running={status === 'flowing' || status === 'resting'} size={30} />
 
           {status === 'resting' ? (
             <>
@@ -136,8 +139,10 @@ export function MarathonView({
               <div className="marathon-clock-primary">{formatStopwatch(flowSeconds)}</div>
               <div className="marathon-clock-sub">
                 {status === 'flowing'
-                  ? 'O tempo cresce livremente — descanse quando quiser'
-                  : 'Comece sem pressa e entre no fluxo'}
+                  ? 'O tempo cresce livremente — pause ou descanse quando quiser'
+                  : status === 'paused'
+                    ? 'Cronômetro pausado'
+                    : 'Comece sem pressa e entre no fluxo'}
               </div>
             </>
           )}
@@ -171,6 +176,14 @@ export function MarathonView({
             <>
               <button
                 type="button"
+                className="btn btn-primary focus-play-btn"
+                onClick={onPause}
+              >
+                <Pause size={18} />
+                <span>Pausar</span>
+              </button>
+              <button
+                type="button"
                 className="btn btn-secondary focus-play-btn"
                 onClick={onStartBreak}
               >
@@ -179,11 +192,40 @@ export function MarathonView({
               </button>
               <button
                 type="button"
-                className="btn btn-primary focus-play-btn"
+                className="btn btn-secondary focus-play-btn"
                 onClick={() => setConfirmFinishOpen(true)}
               >
                 <CheckCircle2 size={17} />
-                <span>Concluir maratona</span>
+                <span>Concluir</span>
+              </button>
+            </>
+          )}
+
+          {status === 'paused' && (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary focus-play-btn"
+                onClick={onStartOrResume}
+              >
+                <Play size={18} />
+                <span>Retomar</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary focus-play-btn"
+                onClick={onStartBreak}
+              >
+                <Coffee size={17} />
+                <span>Descansar</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary focus-play-btn"
+                onClick={() => setConfirmFinishOpen(true)}
+              >
+                <CheckCircle2 size={17} />
+                <span>Concluir</span>
               </button>
             </>
           )}
@@ -201,10 +243,18 @@ export function MarathonView({
               <button
                 type="button"
                 className="btn btn-secondary focus-play-btn"
+                onClick={onPause}
+              >
+                <Pause size={17} />
+                <span>Pausar</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary focus-play-btn"
                 onClick={() => setConfirmFinishOpen(true)}
               >
                 <CheckCircle2 size={17} />
-                <span>Concluir maratona</span>
+                <span>Concluir</span>
               </button>
             </>
           )}

@@ -322,7 +322,7 @@ export function App() {
 
   // Loop de tick da Maratona (baseado em timestamp real — continua em qualquer aba)
   useEffect(() => {
-    if (marathonStatus === 'idle') return;
+    if (marathonStatus !== 'flowing' && marathonStatus !== 'resting') return;
 
     const tick = () => {
       const now = Date.now();
@@ -454,7 +454,9 @@ export function App() {
 
   // Fase prioritária para título da aba e janela flutuante (Maratona ativa, Foco ativo ou aba exibida)
   const useMarathonForDisplay =
-    marathonStatus !== 'idle' || (tab === 'marathon' && !timers.study.running && !timers.break.running);
+    marathonStatus === 'flowing' ||
+    marathonStatus === 'resting' ||
+    (tab === 'marathon' && !timers.study.running && !timers.break.running);
 
   const activeDisplayPhase: PipPhase = useMarathonForDisplay
     ? marathonStatus === 'resting'
@@ -481,7 +483,7 @@ export function App() {
       ].totalSeconds;
 
   const activeDisplayRunning = useMarathonForDisplay
-    ? marathonStatus !== 'idle'
+    ? marathonStatus === 'flowing' || marathonStatus === 'resting'
     : timers.study.running || timers.break.running;
 
   const activeDisplayLabel = useMarathonForDisplay ? marathonLabel : label;
@@ -698,10 +700,32 @@ export function App() {
     setMarathonStatus('flowing');
   }, []);
 
-  const handleMarathonStartBreak = useCallback(() => {
-    if (marathonStatusRef.current !== 'flowing') return;
+  const handleMarathonPause = useCallback(() => {
     const now = Date.now();
-    if (marathonFlowStartMsRef.current !== null) {
+    if (marathonStatusRef.current === 'flowing') {
+      if (marathonFlowStartMsRef.current !== null) {
+        const elapsedFlow = Math.floor((now - marathonFlowStartMsRef.current) / 1000);
+        marathonFlowBaseRef.current += elapsedFlow;
+        marathonFlowStartMsRef.current = null;
+        setMarathonFlowSeconds(marathonFlowBaseRef.current);
+      }
+      setMarathonStatus('paused');
+    } else if (marathonStatusRef.current === 'resting') {
+      if (marathonBreakStartMsRef.current !== null) {
+        const elapsedBreak = Math.floor((now - marathonBreakStartMsRef.current) / 1000);
+        marathonBreakBaseRef.current += elapsedBreak;
+        marathonBreakStartMsRef.current = null;
+        setMarathonTotalBreakSeconds(marathonBreakBaseRef.current);
+        setMarathonCurrentBreakSeconds(0);
+      }
+      setMarathonStatus('paused');
+    }
+  }, []);
+
+  const handleMarathonStartBreak = useCallback(() => {
+    if (marathonStatusRef.current !== 'flowing' && marathonStatusRef.current !== 'paused') return;
+    const now = Date.now();
+    if (marathonStatusRef.current === 'flowing' && marathonFlowStartMsRef.current !== null) {
       const elapsedFlow = Math.floor((now - marathonFlowStartMsRef.current) / 1000);
       marathonFlowBaseRef.current += elapsedFlow;
       marathonFlowStartMsRef.current = null;
@@ -764,8 +788,11 @@ export function App() {
       {
         onToggleRun: () => {
           if (marathonStatusRef.current === 'flowing') {
-            handleMarathonStartBreak();
-          } else if (marathonStatusRef.current === 'resting') {
+            handleMarathonPause();
+          } else if (
+            marathonStatusRef.current === 'paused' ||
+            marathonStatusRef.current === 'resting'
+          ) {
             handleMarathonStartOrResume();
           } else {
             const runningPhase: TimerPhase = timersRef.current.study.running
@@ -777,7 +804,10 @@ export function App() {
           }
         },
         onSwitchPhase: () => {
-          if (marathonStatusRef.current === 'flowing') {
+          if (
+            marathonStatusRef.current === 'flowing' ||
+            marathonStatusRef.current === 'paused'
+          ) {
             handleMarathonStartBreak();
           } else if (marathonStatusRef.current === 'resting') {
             handleMarathonStartOrResume();
@@ -806,6 +836,7 @@ export function App() {
     activeDisplayLabel,
     pushToast,
     toggleRunForPhase,
+    handleMarathonPause,
     handleMarathonStartBreak,
     handleMarathonStartOrResume,
   ]);
@@ -1060,6 +1091,7 @@ export function App() {
             todayEvents={todayEvents}
             todayPriorities={todayPriorities}
             onStartOrResume={handleMarathonStartOrResume}
+            onPause={handleMarathonPause}
             onStartBreak={handleMarathonStartBreak}
             onFinishMarathon={() => void handleFinishMarathon()}
             onDiscardMarathon={resetMarathonState}
