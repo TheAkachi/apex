@@ -1,0 +1,105 @@
+.hg-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hg-svg {
+  display: block;
+  overflow: visible;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Ciclo contínuo de 30s (100% sem corte):
+   0%–95% (~28.5s): areia escoa lentamente de cima para baixo
+   96%–99.5% (~1s): ampulheta gira 180° com suavidade e emenda no próximo ciclo */
+.hg-svg.is-running {
+  animation: hg-rotate 30s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.hg-svg.is-running .hg-top-sand {
+  animation: hg-drain 30s linear infinite;
+}
+
+.hg-svg.is-running .hg-bot-sand {
+  animation: hg-fill 30s linear infinite;
+}
+
+.hg-svg.is-running .hg-stream {
+  animation: hg-stream-flow 30s linear infinite;
+}
+
+.hg-top-sand {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.hg-bot-sand {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transform: scaleY(0);
+}
+
+.hg-stream {
+  opacity: 0;
+}
+
+@keyframes hg-rotate {
+  0%,
+  95.5% {
+    transform: rotate(0deg);
+  }
+  99.5%,
+  100% {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes hg-drain {
+  0% {
+    transform: scaleY(1);
+  }
+  94.5%,
+  100% {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes hg-fill {
+  0% {
+    transform: scaleY(0);
+  }
+  94.5%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes hg-stream-flow {
+  0% {
+    opacity: 0;
+  }
+  1% {
+    opacity: 0.9;
+  }
+  94% {
+    opacity: 0.9;
+  }
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hg-svg.is-running,
+  .hg-svg.is-running .hg-top-sand,
+  .hg-svg.is-running .hg-bot-sand,
+  .hg-svg.is-running .hg-stream {
+    animation: none !important;
+  }
+}

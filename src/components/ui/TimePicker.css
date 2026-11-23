@@ -1,0 +1,123 @@
+.tp-root {
+  position: relative;
+  width: 100%;
+}
+
+.tp-input-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px 0 12px;
+  height: 41px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: #050505;
+  transition: border-color var(--transition-fast);
+}
+
+.tp-input-wrap:focus-within,
+.tp-input-wrap.is-open {
+  border-color: var(--accent);
+}
+
+.tp-text-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  padding: 0;
+}
+
+.tp-text-input:focus {
+  outline: none;
+}
+
+.tp-trigger {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--muted);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.tp-trigger:hover,
+.tp-input-wrap.is-open .tp-trigger {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tp-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  min-width: 170px;
+  background: #0a0a0a;
+  border: 1px solid rgb(249 249 249 / 16%);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 36px rgb(0 0 0 / 78%);
+  padding: 8px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tp-cols-head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+  text-align: center;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tp-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.tp-col {
+  max-height: 196px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 2px;
+}
+
+.tp-option {
+  height: 30px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.tp-option:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.tp-option.is-selected {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}

@@ -1,0 +1,228 @@
+/* Transitions.dev — Motion tokens & production CSS transitions (com prefers-reduced-motion) */
+
+:root {
+  /* Motion tokens */
+  --duration-stagger: 40ms;
+  --duration-micro: 80ms;
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-medium: 350ms;
+  --duration-slow: 400ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: ease-in-out;
+  --ease-out: ease-out;
+
+  /* 16 — Tabs sliding (adaptado à paleta Apex) */
+  --tabs-dur: var(--duration-fast);
+  --tabs-ease: var(--ease-smooth-out);
+  --tabs-text-muted: var(--muted);
+  --tabs-text-active: var(--on-accent);
+  --tabs-bar-bg: var(--surface-subtle);
+  --tabs-pill-bg: var(--accent);
+
+  /* 06 — Modal open / close */
+  --modal-open-dur: var(--duration-fast);
+  --modal-close-dur: var(--duration-quick);
+  --modal-scale: 0.96;
+  --modal-scale-close: 0.96;
+  --modal-ease: var(--ease-smooth-out);
+
+  /* 22 — Toast open / close */
+  --toast-open: var(--duration-medium);
+  --toast-close: var(--duration-fast);
+  --toast-distance: 16px;
+  --toast-blur: 2px;
+  --toast-scale: 0.97;
+  --toast-ease: var(--ease-smooth-out);
+
+  /* 27 — Toggle */
+  --toggle-dur: var(--duration-medium);
+  --toggle-travel: 16px;
+  --toggle-ov1: 1.5px;
+  --toggle-ov2: 0.5px;
+  --toggle-track: 150ms;
+  --toggle-ease: cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+
+/* 16 — Tabs sliding */
+.t-tabs {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 48px;
+  background: var(--tabs-bar-bg);
+  border: 1px solid var(--border);
+}
+
+.t-tab {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  height: 34px;
+  padding: 0 15px;
+  color: var(--tabs-text-muted);
+  cursor: pointer;
+  border-radius: 48px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: color var(--tabs-dur) var(--tabs-ease);
+}
+
+.t-tab svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.t-tab:not([aria-selected="true"]):hover {
+  color: var(--text);
+}
+
+.t-tab[aria-selected="true"] {
+  color: var(--tabs-text-active);
+  font-weight: 600;
+}
+
+.t-tabs-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 34px;
+  width: 0;
+  background: var(--tabs-pill-bg);
+  border-radius: 48px;
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform var(--tabs-dur) var(--tabs-ease),
+    width var(--tabs-dur) var(--tabs-ease);
+  will-change: transform, width;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 06 — Modal open / close */
+.t-modal {
+  transform-origin: center;
+  transform: scale(var(--modal-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--modal-open-dur) var(--modal-ease),
+    opacity var(--modal-open-dur) var(--modal-ease);
+  will-change: transform, opacity;
+}
+
+.t-modal.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.t-modal.is-closing {
+  transform: scale(var(--modal-scale-close));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--modal-close-dur) var(--modal-ease),
+    opacity var(--modal-close-dur) var(--modal-ease);
+}
+
+/* 22 — Toast open / close */
+.t-toast {
+  opacity: 0;
+  transform: translateY(var(--toast-distance)) scale(var(--toast-scale));
+  filter: blur(var(--toast-blur));
+  will-change: transform, opacity, filter;
+  transition:
+    opacity var(--toast-close) var(--toast-ease),
+    transform var(--toast-close) var(--toast-ease),
+    filter var(--toast-close) var(--toast-ease);
+}
+
+.t-toast.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity var(--toast-open) var(--toast-ease),
+    transform var(--toast-open) var(--toast-ease),
+    filter var(--toast-open) var(--toast-ease);
+}
+
+/* 27 — Toggle */
+.t-toggle {
+  position: relative;
+  width: 40px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #050505;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: background var(--toggle-track) var(--toggle-ease),
+    border-color var(--toggle-track) var(--toggle-ease);
+}
+
+.t-toggle[data-on="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.t-toggle-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--muted);
+  translate: 0 0;
+  will-change: translate;
+}
+
+.t-toggle[data-on="true"] .t-toggle-thumb {
+  background: var(--on-accent);
+  translate: var(--toggle-travel) 0;
+}
+
+.t-toggle.is-init[data-on="true"] .t-toggle-thumb {
+  animation: t-toggle-on var(--toggle-dur) var(--toggle-ease) both;
+}
+
+.t-toggle.is-init[data-on="false"] .t-toggle-thumb {
+  animation: t-toggle-off var(--toggle-dur) var(--toggle-ease) both;
+}
+
+@keyframes t-toggle-on {
+  0% { translate: 0 0; }
+  55% { translate: calc(var(--toggle-travel) + var(--toggle-ov1)) 0; }
+  80% { translate: calc(var(--toggle-travel) - var(--toggle-ov2)) 0; }
+  100% { translate: var(--toggle-travel) 0; }
+}
+
+@keyframes t-toggle-off {
+  0% { translate: var(--toggle-travel) 0; }
+  55% { translate: calc(0px - var(--toggle-ov1)) 0; }
+  80% { translate: var(--toggle-ov2) 0; }
+  100% { translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-tabs-pill,
+  .t-tab,
+  .t-modal,
+  .t-toast {
+    transition: none !important;
+  }
+  .t-toggle-thumb {
+    animation: none !important;
+  }
+}
